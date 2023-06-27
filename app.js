@@ -5,6 +5,7 @@ const { open } = require("sqlite");
 const sqlite3 = require("sqlite3");
 
 const app = express();
+app.use(express.json());
 
 const databasePath = path.join(__dirname, "cricketTeam.db");
 let db = null;
@@ -57,14 +58,18 @@ app.post("/players/", async (request, response) => {
         ('${playerName}', ${jerseyNumber}, '${role}');`;
   const player = await db.run(postPlayerQuery);
   const playerId = player.lastID;
-  response.Send("Player Added to Team");
+  response.send("Player Added to Team");
 });
 
 //3. GET player based on a player ID
 app.get("/players/:playerId/", async (request, response) => {
   const { playerId } = request.params;
   const getPlayerQuery = `
-    SELECT *
+    SELECT
+        player_id AS playerId, 
+        player_name AS playerName, 
+        jersey_number AS jerseyNumber,
+        role
     FROM cricket_team
     WHERE player_id = ${playerId};`;
   const player = await db.get(getPlayerQuery);
@@ -78,7 +83,7 @@ app.put("/players/:playerId/", async (request, response) => {
   const { playerName, jerseyNumber, role } = playerDetails;
   const updatePlayerQuery = `
     UPDATE cricket_team
-    SET player_name = '${playerName}', jersey_number = '${jerseyNumber}, role = '${role}'
+    SET player_name = '${playerName}', jersey_number = ${jerseyNumber}, role = '${role}'
     WHERE player_id = ${playerId};`;
   await db.run(updatePlayerQuery);
   response.send("Player Details Updated");
